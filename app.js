@@ -23,17 +23,21 @@ function renderCafe(doc) {
   cross.addEventListener('click', (e) => {
     e.stopPropagation();
     let id = e.target.parentElement.getAttribute('data-id');
+    db.collection('cafes').doc(id).delete();
   })
 }
 
 /// Getting data
-db.collection('cafes').get().then((snapshot) => {
-  //console.log(snapshot.docs);
-  snapshot.docs.forEach(doc => {
-    console.log(doc.data());
-    renderCafe(doc);
-  });
-});
+// db.collection('cafes')
+//   .where('city', '==', 'Marioland')
+//   .orderBy('name')
+//   .get().then((snapshot) => {
+//   //console.log(snapshot.docs);
+//   snapshot.docs.forEach(doc => {
+//     console.log(doc.data());
+//     renderCafe(doc);
+//   });
+// });
 
 /// Saving Data
 form.addEventListener('submit', (e) => {
@@ -44,4 +48,19 @@ form.addEventListener('submit', (e) => {
   });
   form.name.value = '';
   form.city.value = '';
+})
+
+///
+db.collection('cafes').orderBy('name').onSnapshot(snapshot => {
+  let changes = snapshot.docChanges();
+  //console.log(changes);
+  changes.forEach(change => {
+    console.log(change.doc.data());
+    if (change.type == 'added') {
+      renderCafe(change.doc);
+    } else if (change.type == 'removed') {
+      let li = cafeList.querySelector('[data-id=' + change.doc.id + ']');
+      cafeList.removeChild(li);
+    }
+  });
 })
